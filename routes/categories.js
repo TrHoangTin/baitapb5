@@ -1,125 +1,83 @@
-// routes/category.js
-const express = require('express');
-const router = express.Router();
-const categorySchema = require('../models/categories');
-const BuildQueies = require('../Utils/BuildQuery');
+const { fail } = require('assert');
+var express = require('express');
+var router = express.Router();
+let categorySchema = require('../models/categories');
+let BuildQueies = require('../Utils/BuildQuery');
 
-// Middleware để lọc các category không bị xóa
-const filterDeleted = async (req, res, next) => {
-  req.query.isDeleted = false; // Chỉ lấy các category chưa bị xóa
-  next();
-};
-
-// Áp dụng middleware cho tất cả các route GET
-router.use('/?', filterDeleted);
-
-// GET /categories
-router.get('/', async (req, res, next) => {
-  try {
-    const queries = req.query;
-    const categories = await categorySchema.find(BuildQueies.QueryProduct(queries)); // Có thể cần điều chỉnh BuildQuery
-    res.status(200).json({
-      success: true,
-      data: categories
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
+router.get('/', async function(req, res, next) {
+  let queries = req.query;
+  let categories = await categorySchema.find(BuildQueies.QueryCategory(queries));
+  res.send(categories);
 });
 
-// GET /categories/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async function(req, res, next) {
   try {
-    const category = await categorySchema.findById(req.params.id);
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
-    res.status(200).json({
+    let category = await categorySchema.findById(req.params.id);
+    res.status(200).send({
       success: true,
       data: category
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(404).send({
       success: false,
       message: error.message
     });
   }
 });
 
-// POST /categories
-router.post('/', async (req, res, next) => {
-  try {
-    const body = req.body;
-    const newCategory = new categorySchema({
-      categoryName: body.categoryName,
-      description: body.description
-    });
-    const savedCategory = await newCategory.save();
-    res.status(201).json({
-      success: true,
-      data: savedCategory
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
-  }
+router.post('/', async function(req, res, next) {
+  let body = req.body;
+  console.log(body);
+  let newCategory = new categorySchema({
+    categoryName: body.categoryName,
+    description: body.description
+  });
+  
+  await newCategory.save();
+  res.send(newCategory);
 });
-
-// PUT /categories/:id
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', async function(req, res, next) {
   try {
-    const body = req.body;
-    const category = await categorySchema.findByIdAndUpdate(req.params.id, body, {
-      new: true,
-      runValidators: true
-    });
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
-    res.status(200).json({
+    let category = await categorySchema.findById(req.params.id);
+    let body = req.body;
+    
+    category.categoryName = body.categoryName;
+    category.description = body.description;
+    
+    await category.save();
+    
+    res.status(200).send({
       success: true,
       data: category
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(404).send({
       success: false,
       message: error.message
     });
   }
 });
 
-// DELETE /categories/:id
-router.delete('/:id', async (req, res, next) => {
+// DELETE a category (soft delete)
+router.delete('/:id', async function(req, res, next) {
   try {
-    const category = await categorySchema.findByIdAndUpdate(
-      req.params.id,
-      { isDeleted: true },
-      { new: true }
-    );
+    let category = await categorySchema.findById(req.params.id);
     if (!category) {
-      return res.status(404).json({
+      return res.status(404).send({
         success: false,
-        message: 'Category not found'
+        message: "Category not found"
       });
     }
-    res.status(200).json({
+    
+    category.isDeleted = true;
+    await category.save();
+    
+    res.status(200).send({
       success: true,
-      message: 'Category soft deleted successfully',
-      data: category
+      message: "Category deleted successfully"
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(500).send({
       success: false,
       message: error.message
     });

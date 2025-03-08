@@ -1,11 +1,39 @@
-const mongoose = require('mongoose');
 
-const productSchema = new mongoose.Schema({
-  productName: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  categoryID: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  isDeleted: { type: Boolean, default: false } // Thêm trường isDeleted với default = false
-});
-
-module.exports = mongoose.model('Product', productSchema);
+let mongoose = require('mongoose');
+let productSchema = mongoose.Schema({
+    productName:{
+        type:String,
+        required:true,
+        unique:true
+    },
+    price:{
+        type:Number,
+        min:0,
+        default:1
+    },
+    quantity:{
+        type:Number,
+        min:0,
+        default:1
+    },
+    description:{
+        type:String,
+        default:""
+    },
+    imgURL:{
+        type:String,
+        default:""
+    },
+    categoryID:{
+        type:String,
+        required:true
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
+    }
+},{
+    timestamps:true
+})
+module.exports=
+mongoose.model('product',productSchema)

@@ -5,17 +5,11 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 
-
+var categoriesRouter = require('./routes/categories');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
-
-var productsRouter = require('./routes/products');
-var categoriesRouter = require('./routes/categories');
-
-app.use('/products', productsRouter);
-app.use('/categories', categoriesRouter);
 
 mongoose.connect("mongodb://localhost:27017/C2");
 mongoose.connection.on("connected",()=>{
@@ -37,7 +31,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/products', require('./routes/products'));
-
+app.use('/categories', categoriesRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -53,15 +47,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-const express = require('express');
-const app = express();
-const productRouter = require('./routes/product');
-const categoryRouter = require('./routes/category');
-
-app.use('/products', productRouter);
-app.use('/categories', categoryRouter);
-
-app.listen(3000, () => console.log('Server running on port 3000'));
 
 module.exports = app;
